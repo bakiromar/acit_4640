@@ -31,13 +31,6 @@ vboxmanage storageattach ${vm_name} \
             --port ${port_num} \
             --device ${device_num} \
             --type dvddrive \
-            --medium ${vm_folder}\\${vm_name}.vdi
-
-vboxmanage storageattach ${vm_name} \
-            --storagectl "idecontroller" \
-            --port ${port_num} \
-            --device ${device_num} \
-            --type dvddrive \
             --medium ${iso_file_path}
 
 #-------ssd--------
