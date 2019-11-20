@@ -1,0 +1,110 @@
+---
+- name: Setup todoapp
+hosts: todoapp
+become: yes
+
+tasks:
+- name: Install Nginx
+yum:
+  name: nginx
+  state: present
+
+- name: Install Node
+yum:
+  name: nodejs
+  state: present
+
+- name: Install Git
+yum:
+  name: git
+  state: present
+
+-name: Install npm
+yum:
+  name: npm
+  state: present
+
+- name: Install DB
+yum:
+  name: mongodb-server
+  state: present
+
+- name: Create new User for todoapp
+  user:
+    name: todo-app
+    password: $6$20d5IHYI4OGf$uYc8JZxgwlTVKq.hULo2gsSoh6iVFnkoxscIGjVi34UsJP0B/Q/eINZX.b/Zp.5HOqgb9GaEtVbNDiQx7gbGV/
+    state: present
+
+- name: Setup firewall
+  firewalld:
+    zone: public
+    service: http
+    permanent: yes
+    state: enabled
+    immediate: yes
+
+- name: Disable SeLinux
+ selinux:
+  state: disabled
+
+
+
+- name: Git clone todoapp
+  git:
+    repo: https://github.com/timoguic/ACIT4640-todo-app.git
+    dest: /home/todo-app/app/
+  become: yes
+  become_user: todo-app
+
+- name: Copy nginx file
+ copy:
+    src: ../files/nginx.conf
+    dest: /etc/nginx/nginx.conf
+    owner: nginx
+    group: nginx
+
+- name: Copy service
+  copy:
+    src: ../files/todoapp.service
+    dest: /lib/systemd/system
+    owner: nginx
+    group: nginx
+
+- name: Copy database file
+  become: yes
+  copy:
+    src: ../files/database.js
+    dest: /home/todo-app/app/config/database.js
+    owner: todo-app
+    group: todo-app
+
+- name: Start and enabe - nginx
+  service:
+    name: nginx
+    enabled: yes
+    state: started
+
+- name: Start and enabe - mongod
+  service:
+    name: mongod
+    enabled: yes
+    state: started
+
+- name: Start and enabe - todoapp
+  service:
+    name: todoapp
+    enabled: yes
+    state: started
+
+ - name: Change todoapp permissions
+      file:
+        path: /home/todo-app
+        state: directory
+        recurse: yes
+        mode: '0755'
+        owner: todo-app
+        group: todo-app
+
+- name: Reboot services
+    systemd:
+      daemon_reload: yes
