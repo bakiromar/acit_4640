@@ -1,0 +1,30 @@
+---
+- name: get IP info
+  ipify_facts:
+  register: ip_data
+
+- name: output public IP
+  debug:
+    msg: 'EC2 Instance Public IP: {{ ip_data.ansible_facts.ipify_public_ip }}'
+
+- name: check nginx status
+  become: yes
+  command: systemctl status nginx
+  ignore_errors: yes
+  changed_when: false
+  register: nginx_data
+
+- name: output nginx status
+  debug:
+    msg: '{{ nginx_data }}'
+
+- name: check application status
+  become: yes
+  command: systemctl status todoapp
+  ignore_errors: yes
+  changed_when: false
+  register: app_data
+
+- name: output app status
+  debug:
+    msg: '{{ app_data }}'
